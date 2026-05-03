@@ -1,11 +1,13 @@
 package com.company.enroller.persistence;
 
-import com.company.enroller.model.Participant;
+import java.util.Collection;
+
+import com.company.enroller.controllers.ParticipantRestController;
 import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
+import com.company.enroller.model.Participant;
 
 @Component("participantService")
 public class ParticipantService {
@@ -21,16 +23,27 @@ public class ParticipantService {
         Query query = connector.getSession().createQuery(hql);
         return query.list();
     }
+    public Participant findByLogin(String login) { return(Participant)  connector.getSession().get(Participant.class, login);}
 
-    public Participant findByLogin(String login) {
-        return connector.getSession().get(Participant.class, login);
-    }
-
-    public Participant add(Participant participant) {
+    public void add(Participant participant) {
         Transaction transaction = connector.getSession().beginTransaction();
         connector.getSession().save(participant);
         transaction.commit();
-        return participant;
+    }
+
+    public void deleteByLogin(String login) {
+        Transaction transaction = connector.getSession().beginTransaction();
+
+        Participant participant = (Participant) connector.getSession()
+                .createQuery("FROM Participant WHERE login = :login")
+                .setParameter("login", login)
+                .uniqueResult();
+
+        if (participant != null) {
+            connector.getSession().delete(participant);
+        }
+
+        transaction.commit();
     }
 
     public void update(Participant participant) {
@@ -39,10 +52,8 @@ public class ParticipantService {
         transaction.commit();
     }
 
-    public void delete(Participant participant) {
-        Transaction transaction = connector.getSession().beginTransaction();
-        connector.getSession().delete(participant);
-        transaction.commit();
-    }
+
+
 
 }
+
